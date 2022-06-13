@@ -1,0 +1,25 @@
+{
+  "name": "simplehttpts",
+  "version": "0.0.1",
+  "description": "simple http server with ts",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "echo \"no tests specified\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thmtvz/simplehttpts.git"
+  },
+  "keywords": [
+    "http"
+  ],
+  "author": "thiago vaz",
+  "license": "BSL-1.0",
+  "bugs": {
+    "url": "https://github.com/thmtvz/simplehttpts/issues"
+  },
+  "homepage": "https://github.com/thmtvz/simplehttpts#readme",
+  "Dependencies": {
+    "@types/node": "^17.0.42"
+  }
+}

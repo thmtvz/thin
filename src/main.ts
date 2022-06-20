@@ -1,3 +1,9 @@
-let hw: string = "Hello World";
+import http from "http";
 
-console.log(hw);
+let srv = http.createServer();
+
+function start(): void{
+    srv.listen(8080);
+}
+
+//start();

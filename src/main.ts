@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 /*
   ->receber conexoes
   ->recebe mensagens http
@@ -62,3 +63,8 @@ serverBind(3030);
 /*stub*/function routeHandler(arg1: any, arg2: any):void{
     let i = 0;
 }
+=======
+import http from "http";
+
+
+>>>>>>> Stashed changes

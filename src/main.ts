@@ -25,19 +25,25 @@
 
   funcionamento concebido até agora: recebe um pedido, aguarda o pedido ser concluido, quando concluido passa para o dispatch de rotas, que acionam o dado recurso. Durante esse processo, sao executados hooks e sao gerados logs. 
 */ 
-import http from "http";
+//TODO: montar isso aqui com um esquema de uniao de tipos, para criar um
+//objeto incrimental
+type requestObject = {
+    headers: string[];
+    body: string;
+    url: URL;
+    req: http.IncomingMessage;
+};
 
-interface xRequest extends http.IncomingMessage{
-    body?: string,
-}
+import http from "http";
 
 const server = http.createServer();
 
 function serverBind(port: number){
     server.on("request", async function(request, response){
 	let body = "";
-	//xtendedRequest
-	let xReq: xRequest = request;
+	let reqObj: requestObject = {
+	    
+	}
 	request.on("data", function(data){
 	    body += data.toString();
 	});

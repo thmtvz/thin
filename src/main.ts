@@ -27,47 +27,32 @@
 */ 
 import http from "http";
 
+interface xRequest extends http.IncomingMessage{
+    body?: string,
+}
+
 const server = http.createServer();
 
-let totalRequests = 0;
-
-const mod: ((arg0: any) => any)[] = [];
-let loaded = await import("./teste.js");
-mod.push(loaded.default);
-
-server.on("request", async function(request, response){
-    const uri = new URL((request.url || ""), "http://localhost:3000/");
-    if(uri.pathname == "/info"){
-	response.end(`<h1>Total de pedidos:</h1>\n<p>${totalRequests}</p>`);
-	totalRequests++;
-	return;
-    } else if(uri.pathname === "/mod"){
-	response.end(`${mod[0]("jonas")}`);
-	console.log(mod);
-	return;
-    } else if(uri.pathname.slice(0,6) === "/load/"){
-	const modname = uri.pathname.slice(5);
-	try{
-	    var modul = await import("./" + modname + ".js");
-	    var l = mod.push(modul.default);
-	} catch (e) {
-	    console.log(e);
-	    response.end("<h1>error</h1>");
-	    return;
-	}
-	response.end(mod[l - 1]("jonas"));
-	return;
-    }
-    console.log("===PEDIDO RECEBIDO===");
-    console.log(request);
-    response.end("<h1>oi</h1>");
-    console.log("===PEDIDO ENVIADO===");
-    totalRequests++;
-    request.once("close", function(){
-	console.log("complete");
-	console.log(request.complete);
-	return;
+function serverBind(port: number){
+    server.on("request", async function(request, response){
+	let body = "";
+	//xtendedRequest
+	let xReq: xRequest = request;
+	request.on("data", function(data){
+	    body += data.toString();
+	});
+	request.on("close", function(){
+	    xReq.body = body;
+	});
+	request.once("end", function(){
+	    routeHandler(xReq, response);
+	});
     });
-});
+    server.listen(port);
+}
 
-server.listen(3030);
+serverBind(3030);
+
+/*stub*/function routeHandler(arg1: any, arg2: any):void{
+    let i = 0;
+}

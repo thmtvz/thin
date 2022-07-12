@@ -1,2 +1,2 @@
-rm ./release/*
+rm release/*.*
 tsc

@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 /*
   ->receber conexoes
   ->recebe mensagens http
@@ -24,16 +23,18 @@
 
   importar modulos dinamicamente
 
-  funcionamento concebido até agora: recebe um pedido, aguarda o pedido ser concluido, quando concluido passa para o dispatch de rotas, que acionam o dado recurso. Durante esse processo, sao executados hooks e sao gerados logs. 
+  funcionamento concebido até agora: recebe um pedido, aguarda o pedido ser concluido, quando concluido passa para o dispatch de rotas, que acionam o dado recurso. Durante esse processo, sao executados hooks e sao gerados logs.
+
+  em questao do proprio codigo, ele começa executando com um parse da configuraçao, para registrar as rotas,
+  e verbos, assim como uma serie de açoes padrão. depois disso, registra os hooks determinados nos modulos.
+  apos isso ele inicia os binds e as mudanças dinamicas de configuraçao. 
 */ 
 //TODO: montar isso aqui com um esquema de uniao de tipos, para criar um
 //objeto incrimental
-type requestObject = {
-    headers: string[];
-    body: string;
-    url: URL;
-    req: http.IncomingMessage;
-};
+
+//TODO: trocar isso aqui de lugar, isso aqui inicia o servidor mas nao é a funçao main
+type body = string;
+type headers = Map<string, string>;
 
 import http from "http";
 
@@ -42,17 +43,16 @@ const server = http.createServer();
 function serverBind(port: number){
     server.on("request", async function(request, response){
 	let body = "";
-	let reqObj: requestObject = {
-	    
-	}
+	//STUB
+	let reqObj = {body: ""};
 	request.on("data", function(data){
 	    body += data.toString();
 	});
 	request.on("close", function(){
-	    xReq.body = body;
+	    reqObj.body = body;
 	});
 	request.once("end", function(){
-	    routeHandler(xReq, response);
+	    routeHandler(request, response);
 	});
     });
     server.listen(port);
@@ -60,11 +60,5 @@ function serverBind(port: number){
 
 serverBind(3030);
 
-/*stub*/function routeHandler(arg1: any, arg2: any):void{
-    let i = 0;
-}
-=======
-import http from "http";
-
-
->>>>>>> Stashed changes
+//STUB
+declare function routeHandler(arg1: {}, arg2: {}):void;

@@ -74,10 +74,25 @@ function parse(content: string, configObj: configObject){
 	    case "host":
 		let routes: route[] = [];
 		let name: string;
+		let braceCount = 1;
+		let block: token[] = [];
 		skipIter();
 		value !== "{" (name = value) && skipIter() : parseError(`Missing name for host`, line);
 		value === "{" skipIter() : parseError(`Missing block opening`, line);
-		while(value !== "}"){
+		while(braceCount > 0){
+		    if(value === "{"){
+			braceCount++;
+		    }
+		    else if(value === "}"){
+			braceCount--;
+			if(braceCount === 0 && block.length === 0) parseError(`Syntax error`, line);
+		    }
+		    block.push(tokens[i]);
+		    skipIter();
+		}
+		for(let j = 0;j < block.length; ++j){
+		    let routeName = block.value;
+		    let lineNum = block.line;
 		    
 		}
 	    default:

@@ -1,5 +1,5 @@
 {
-    "name": "simplehttpts",
+    "name": "thin",
     "version": "0.0.1",
     "description": "simple http server with ts",
     "main": "src/main.js",
@@ -10,7 +10,7 @@
     },
     "repository": {
 	"type": "git",
-	"url": "git+https://github.com/thmtvz/simplehttpts.git"
+	"url": "git+https://github.com/thmtvz/thin.git"
     },
     "keywords": [
 	"http"
@@ -18,9 +18,9 @@
     "author": "thiago vaz",
     "license": "BSL-1.0",
     "bugs": {
-	"url": "https://github.com/thmtvz/simplehttpts/issues"
+	"url": "https://github.com/thmtvz/thin/issues"
     },
-    "homepage": "https://github.com/thmtvz/simplehttpts#readme",
+    "homepage": "https://github.com/thmtvz/thin#readme",
     "Dependencies": {
 	"@types/node": "^17.0.42"
     }

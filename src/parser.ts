@@ -1,6 +1,11 @@
 //le a config, e traduz tudo em um objeto com as rotas e opçoes
 import http from "http";
 
+type keyValue = {
+    key: token;
+    value: token | token[];
+}
+
 type requestObject = {
     headers: string[];
     body: string;
@@ -77,34 +82,39 @@ function parse(content: string, configObj: configObject){
 		let braceCount = 1;
 		let block: token[] = [];
 		skipIter();
-		value !== "{" (name = value) && skipIter() : parseError(`Missing name for host`, line);
-		value === "{" skipIter() : parseError(`Missing block opening`, line);
+		value !== "{" ? (name = value) && skipIter() : parseError(`Missing name for host`, lineNum);
+		value === "{" ? skipIter() : parseError(`Missing block opening`, lineNum);
 		while(braceCount > 0){
 		    if(value === "{"){
 			braceCount++;
 		    }
 		    else if(value === "}"){
 			braceCount--;
-			if(braceCount === 0 && block.length === 0) parseError(`Syntax error`, line);
+			if(braceCount === 0 && block.length === 0) parseError(`Syntax error`, lineNum);
 		    }
 		    block.push(tokens[i]);
 		    skipIter();
 		}
 		for(let j = 0;j < block.length; ++j){
-		    let routeName = block.value;
-		    let lineNum = block.line;
+		    let routeName = block[j].value;
+		    let lineNum = block[j].line;
 		    
 		}
+		console.log(block);
+	    case "}":
+		break;
 	    default:
 		parseError(`Unrecognized token: "${value}"`, lineNum);
 	}
 	function skipIter(){
 	    ++i;
+	    if(i >= tokens.length) return;
 	    value = tokens[i].value;
 	    lineNum = tokens[i].line;
-	    if(i === tokens.length) parseError("Unexpected end of config", line);
+	    if(i === tokens.length) parseError("Unexpected end of config", lineNum);
 	}
     }
+
     return configObj;
 }
 /*
@@ -115,8 +125,18 @@ function parse(content: string, configObj: configObject){
   handlers pra cada rota
   default pra cada rota faltante
   
+  =======
+  SINTAXE DA CONFIGURAÇAO
+  config valor
+  host {
+   config valor
+   route {
+    config valor
+   }
+  }
+  =======
  */
-console.log(parse(await readFile("Config"), defaults));
+//console.log(parse(await readFile("Config"), defaults));
 
 function tokenize(lines: string[]){
     let tokens: token[] = [];
@@ -128,11 +148,47 @@ function tokenize(lines: string[]){
     return tokens;
 }
 
-function parseError(message: string, position: number){
+function parseError(message: string, position: number, errno: number = 1){
     console.log(message, "at line", position);
-    process.exit(1);
+    process.exit(errno);
 }
 
 function stubHandler(arg: requestObject){
     return arg;
 }
+
+function newParser(content: string, configObj: configObject){
+    const tokens = tokenize(content.split("\n"));
+    let st: keyValue[] = [];
+    for(let i = 0; i < tokens.length - 1; ++i){
+	let key = tokens[i];
+	let value: token | token[];
+	if(tokens[i + 1].value === "{" && ++i){
+	    let braceCount = 1;
+	    value = [];
+	    while(braceCount > 0){
+		let current = tokens[i].value;
+		value.push(tokens[i]);
+		++i;
+		if(current === "{"){
+		    braceCount++;
+		    break;
+		} else if(current === "}"){
+		    braceCount--;
+		    break;
+		} else if(i > tokens.length && braceCount > 0){
+		    //TODO: implement error function
+		    console.log("Parse Error, unmatching braces");
+		    process.exit(1);
+		}
+	    }
+	    st.push({key: key, value: value});
+	} else {
+	    st.push({key: key, value: tokens[++i]});
+	}
+	
+    }
+    console.log(st[1]);
+    return configObj;
+}
+console.log(newParser(await readFile("Config"), defaults));

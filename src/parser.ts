@@ -192,3 +192,22 @@ function newParser(content: string, configObj: configObject){
     return configObj;
 }
 console.log(newParser(await readFile("Config"), defaults));
+
+//esse aqui é o principal
+//parsa, e retorna um objeto representando os dados
+/* o formato é:
+   
+   config valor
+   host {
+     config valor
+     rota {
+       config valor
+     }
+   }
+   
+   a reponsabilidade dessa funçao é apenas transformar os conteudos da string em um objeto.
+
+*/
+function nParser (content: string): {}{
+    
+}

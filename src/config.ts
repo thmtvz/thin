@@ -24,7 +24,7 @@ type RouteConfig = {
     handler: string,
 }
 
-//Kind of grammar of sort 🤷🤷
+//sort of grammar 🤷🤷
 const topLevelConfigProps: string[] = ["port"];
 const siteLevelConfigProps: string[] = [];
 const verbLevelConfigProps: string[] = [];
@@ -34,8 +34,6 @@ async function loadConfig(filename: string): Promise<Config>{ //Returns config
     try{
 	const fileContents = await fs.readFile(filename);
 	const contestingConfig: {[k: string]: any} = JSON.parse(fileContents.toString());
-
-	console.log(contestingConfig);
 
 	let configObj: {[k: string]: any} = {}
 	let sites: {[k: string]: any}[] = [];
@@ -80,9 +78,46 @@ async function loadConfig(filename: string): Promise<Config>{ //Returns config
 	configObj.sites = sites;
 	
 	//agora a missao é transformar isso aqui em um objeto que o typechecker aceita
-
+	let result =  makeConfig(configObj);
+	console.log(result);
+	return result
+	
     } catch(e){
 	console.error("Failed to read configuration file");
-	console.error(e)
+	if(typeof e === "object" &&
+	    e !== null &&
+	    "message" in e) console.log(e.message);
+	process.exit(1);
     }
 }
+
+function makeConfig(obj: {[k: string]: any}): Config{
+    let configObj: Config;
+    let port = obj.port;
+    const sites: SiteConfig[] = [];
+    if(obj.sites && obj.sites instanceof Array){
+	for(let site of obj.sites){
+	    if("name" in site &&
+		"verbs" in site){
+		const verbs: VerbConfig[] = [];
+		if(site.verbs instanceof Array)
+		    for(let verb of site.verbs){
+			if("verb" in verb &&
+			    "routes" in verb){
+			    const routes: RouteConfig[] = [];
+			    for(let route of verb.routes){
+				if("name" in route &&
+				    "handler" in route)
+				    routes.push({name: route.name, handler: route.handler});
+			    }
+			    verbs.push({verb: verb.verb, routes: routes});
+			}
+		    }
+		sites.push({name: site.name, verbs: verbs});
+	    }
+	}
+    }
+    return {port: port || 8080, sites: sites};
+}
+
+loadConfig("./src/thinConfig.json");

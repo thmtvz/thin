@@ -77,10 +77,7 @@ async function loadConfig(filename: string): Promise<Config>{ //Returns config
 	}
 	configObj.sites = sites;
 	
-	//agora a missao é transformar isso aqui em um objeto que o typechecker aceita
-	let result =  makeConfig(configObj);
-	console.log(result);
-	return result
+	return makeConfig(configObj);
 	
     } catch(e){
 	console.error("Failed to read configuration file");
@@ -91,6 +88,7 @@ async function loadConfig(filename: string): Promise<Config>{ //Returns config
     }
 }
 
+// TODO refactor
 function makeConfig(obj: {[k: string]: any}): Config{
     let configObj: Config;
     let port = obj.port;

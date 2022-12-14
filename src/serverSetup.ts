@@ -1,7 +1,6 @@
 import { createServer, METHODS, IncomingMessage,
        ServerResponse} from "node:http";
 
-
 type verbsTuple = typeof METHODS;
 type validVerb = verbsTuple[number];
 
@@ -40,7 +39,7 @@ function findOnList<T extends Object>(name: string,
 		comparee !== null &&
 		"test" in comparee))
 	    if(compare(comparee) === true)
-		return item; //thanks for such a lovely code, tsc
+		return item; //thanks for such a lovely code, ts
     }
     return null;
 }

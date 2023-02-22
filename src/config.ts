@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-
-//port
-//sites
+import {Site, Verb, Route} from "./server.js";
+import loadHandler from "./handler.js";
+import findServer from "./findServer.js";
 
 type Config = {
     port: number,
@@ -24,15 +24,49 @@ type RouteConfig = {
     handler: string,
 }
 
-//sort of grammar 🤷🤷
 const topLevelConfigProps: string[] = ["port"];
 const siteLevelConfigProps: string[] = [];
 const verbLevelConfigProps: string[] = [];
 const routeLevelConfigProps: string[] = ["handler"];
 
-async function loadConfig(filename: string): Promise<Config>{ //Returns config
+export async function translateSiteConfig(siteConfig: SiteConfig): Promise<Site>{
+    const verbs = [];
+    for(let verb of siteConfig.verbs){
+	verbs.push(await translateVerbConfig(verb));
+    }
+    return {name: siteConfig.name,
+	    verbs: verbs};
+}
+
+async function translateVerbConfig(verbConfig: VerbConfig): Promise<Verb>{
+    const routes: Route[] = [];
+    for(let route of verbConfig.routes){
+	routes.push(await translateRouteConfig(route));
+    }
+    return {verb: verbConfig.verb,
+	    routes: routes};
+}
+
+async function translateRouteConfig(routeConfig: RouteConfig): Promise<Route>{
+    return {name: translateWildcard(routeConfig.name),
+	    handler: await loadHandler(routeConfig.handler)};
+}
+
+function translateWildcard(str: string): string | RegExp {
+    const wildcards = ["*", "?", "^", "$", ".", "!", "[", "]"];
+    if(str === "*") return new RegExp(/./);
+    for(let char of wildcards){
+	if(str.indexOf(char) !== -1)
+	    return new RegExp(str);
+    }
+    return str;
+}
+
+export async function loadConfig(): Promise<Config>{ 
     try{
-	const fileContents = await fs.readFile(filename);
+	const serverDir = findServer();
+	if(!serverDir) return makeConfig({});
+	const fileContents = await fs.readFile(path.resolve(serverDir, "config.json"));
 	const contestingConfig: {[k: string]: any} = JSON.parse(fileContents.toString());
 
 	let configObj: {[k: string]: any} = {}
@@ -117,5 +151,3 @@ function makeConfig(obj: {[k: string]: any}): Config{
     }
     return {port: port || 8080, sites: sites};
 }
-
-loadConfig("./src/thinConfig.json");

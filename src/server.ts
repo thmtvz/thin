@@ -1,32 +1,30 @@
 import { createServer, METHODS, IncomingMessage,
-       ServerResponse} from "node:http";
+	 ServerResponse, Server} from "node:http";
+import {loadConfig, translateSiteConfig} from "./config.js";
+import {registerSite, retrieveSite} from "./registry.js";
 
-type verbsTuple = typeof METHODS;
-type validVerb = verbsTuple[number];
+type VerbsTuple = typeof METHODS;
+type ValidVerb = VerbsTuple[number];
 
-type handlerFn = (transactionState: {req: IncomingMessage,
+export type HandlerFn = (transactionState: {req: IncomingMessage,
 				     res: ServerResponse},
 		  serverState: {},
 		  modules: {}) => void
 
-type route = {
+export type Route = {
     name: string | RegExp,
-    handler: handlerFn,
+    handler: HandlerFn,
 }
 
-type verb = {
-    verb: validVerb;
-    routes: route[],
+export type Verb = {
+    verb: ValidVerb;
+    routes: Route[],
 }
 
-type site = {
+export type Site = {
     name: string | RegExp,
-    verbs: verb[];
+    verbs: Verb[];
 }
-
-const server = createServer();
-
-const sites: site[] = [];
 
 function findOnList<T extends Object>(name: string,
 				      list: T[],
@@ -39,15 +37,15 @@ function findOnList<T extends Object>(name: string,
 		comparee !== null &&
 		"test" in comparee))
 	    if(compare(comparee) === true)
-		return item; //thanks for such a lovely code, ts
+		return item; 
     }
     return null;
 }
 
 function dropper(siteName: string,
-		       verb: validVerb,
-		       route: string): handlerFn | null{
-    const chosenSite = findOnList<site>(siteName, sites, "name", compareTo(siteName));
+		       verb: ValidVerb,
+		       route: string): HandlerFn | null{
+    const chosenSite = retrieveSite(siteName);
     if(!chosenSite) return null;
     const knownRoutes = findOnList(verb, chosenSite.verbs, "verb",
 				   (to) => to === verb);
@@ -74,15 +72,29 @@ async function serverHandler(request: IncomingMessage,
 
     request.on("data", (d) => buf.push(d));
     request.on("end", () => {
-	let extendedRequest: IncomingMessage & {body?: string} = request;
-	extendedRequest.body = Buffer.concat(buf).toString();
+	console.log(hostname, pathname, verb);
+	let extendedRequest: IncomingMessage & {body?: Buffer} = request;
+	extendedRequest.body = Buffer.concat(buf);
+
 	let handle = dropper(hostname, verb, pathname);
 	if(handle !== null)
 	    handle({req: extendedRequest, res: response}, {}, {});
     });
 }
 
-function setup(config: Config){
+var server: null | Server = null;
+
+export default async function startServer(){
+    let config = await loadConfig();
+    for(let site of config.sites){
+	registerSite(await translateSiteConfig(site));
+    }
+    
+    initServer(config.port);
+}
+
+function initServer(port: number){
+    server = createServer();
     server.on("request", serverHandler);
-    server.listen(8080);
+    server.listen(port);
 }

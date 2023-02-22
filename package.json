@@ -3,27 +3,27 @@
     "version": "0.0.1",
     "description": "Simple webserver inspired by nginx and expressjs",
     "main": "build/main.js",
-    "type" : "module",
+    "type": "module",
     "scripts": {
-	"test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
-	"type": "git",
-	"url": "git+https://github.com/thmtvz/thin.git"
+        "type": "git",
+        "url": "git+https://github.com/thmtvz/thin.git"
     },
     "keywords": [
-	"http",
-	"server",
-	"modular"
+        "http",
+        "server",
+        "modular"
     ],
     "author": "thiago martins vaz",
     "license": "GPL-3.0",
     "bugs": {
-	"url": "https://github.com/thmtvz/thin/issues"
+        "url": "https://github.com/thmtvz/thin/issues"
     },
     "homepage": "https://github.com/thmtvz/thin#readme",
     "devDependencies": {
-	"@types/node": "^18.11.11",
-	"tsc": "^2.0.4"
+        "@types/node": "^18.14.0",
+        "tsc": "^2.0.4"
     }
 }

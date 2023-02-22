@@ -1,7 +1,12 @@
-import setup from "./serverSetup.js";
-import loadConfig from "./config.js";
+import startServer from "./server.js"
 
-(async function main(){
-    const config = loadConfig("thinConfig.json");
-    setup(config);
-})()
+function processArg(arg: string){
+    return;
+}
+
+(async function main(args){
+    for(let arg of args){
+	processArg(arg);
+    }
+    startServer();
+})(process.argv)

@@ -86,6 +86,7 @@ var server: null | Server = null;
 
 export default async function startServer(){
     let config = await loadConfig();
+    console.dir(config, {depth: null});
     for(let site of config.sites){
 	registerSite(await translateSiteConfig(site));
     }

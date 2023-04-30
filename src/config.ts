@@ -24,10 +24,13 @@ type RouteConfig = {
     handler: string,
 }
 
+//TODO make this map the config types
+//This will be usefull for extending basic config options
 const topLevelConfigProps: string[] = ["port"];
 const siteLevelConfigProps: string[] = [];
 const verbLevelConfigProps: string[] = [];
 const routeLevelConfigProps: string[] = ["handler"];
+//not implemented yet
 
 export async function translateSiteConfig(siteConfig: SiteConfig): Promise<Site>{
     const verbs = [];
@@ -54,7 +57,7 @@ async function translateRouteConfig(routeConfig: RouteConfig): Promise<Route>{
 
 function translateWildcard(str: string): string | RegExp {
     const wildcards = ["*", "?", "^", "$", ".", "!", "[", "]"];
-    if(str === "*") return new RegExp(/./);
+    str = str.replace(/\*/g, ".");
     for(let char of wildcards){
 	if(str.indexOf(char) !== -1)
 	    return new RegExp(str);
@@ -122,32 +125,50 @@ export async function loadConfig(): Promise<Config>{
     }
 }
 
-// TODO refactor
-function makeConfig(obj: {[k: string]: any}): Config{
+function getValidElements<T>(arr: any[], validator: (e: any) => T | null): T[]{
+    const validElements: T[] = [];
+    for(let element of arr){
+	if(validator(element))
+	    validElements.push(element);
+    }
+    return validElements;
+}
+
+function validateSite(site: any): SiteConfig | null {
+    if("name" in site && "verbs" in site){
+	const validVerbs: VerbConfig[] = getValidElements(site.verbs, validateVerb);
+	//implement name validator later
+	return {name: site.name,
+		verbs: validVerbs};
+    }
+    return null;
+}
+
+function validateVerb(verb: any): VerbConfig | null {
+    if("verb" in verb && "routes" in verb){
+	const validRoutes: RouteConfig[] = getValidElements(verb.routes, validateRoute);
+	return {verb: verb.verb,
+		routes: validRoutes};
+    }
+    return null;
+}
+
+function validateRoute(route: any): RouteConfig | null {
+    if("name" in route && "handler" in route){
+	return {name: route.name,
+		handler: route.handler};
+    }
+    return null;
+}
+
+function makeConfig(obj: {[k:string]: any}): Config{
+    //validar que o objeto json carregado definitivamente tem
+    //as propriedades minimas esperadas do tipo
     let configObj: Config;
     let port = obj.port;
-    const sites: SiteConfig[] = [];
     if(obj.sites && obj.sites instanceof Array){
-	for(let site of obj.sites){
-	    if("name" in site &&
-		"verbs" in site){
-		const verbs: VerbConfig[] = [];
-		if(site.verbs instanceof Array)
-		    for(let verb of site.verbs){
-			if("verb" in verb &&
-			    "routes" in verb){
-			    const routes: RouteConfig[] = [];
-			    for(let route of verb.routes){
-				if("name" in route &&
-				    "handler" in route)
-				    routes.push({name: route.name, handler: route.handler});
-			    }
-			    verbs.push({verb: verb.verb, routes: routes});
-			}
-		    }
-		sites.push({name: site.name, verbs: verbs});
-	    }
-	}
+	const validSites = getValidElements(obj.sites, validateSite);
+	return {port: port || 8080, sites: validSites};
     }
-    return {port: port || 8080, sites: sites};
+    return {port: 8080, sites: []};
 }

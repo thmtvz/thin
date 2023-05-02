@@ -72,7 +72,6 @@ async function serverHandler(request: IncomingMessage,
 
     request.on("data", (d) => buf.push(d));
     request.on("end", () => {
-	console.log(hostname, pathname, verb);
 	let extendedRequest: IncomingMessage & {body?: Buffer} = request;
 	extendedRequest.body = Buffer.concat(buf);
 
@@ -86,7 +85,6 @@ var server: null | Server = null;
 
 export default async function startServer(){
     let config = await loadConfig();
-    console.dir(config, {depth: null});
     for(let site of config.sites){
 	registerSite(await translateSiteConfig(site));
     }

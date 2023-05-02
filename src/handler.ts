@@ -24,16 +24,13 @@ async function moduleImporter(filename: string): Promise<(t: any, s: any, m: any
     if(typeof mod.default === "function") return (t,s,m) => {
 	mod.default(t,s,m);
     }
-    console.log("not load", filename);
     return (t,s,m) => {};
 }
 export default async function loadHandler(handlerName: string): Promise<HandlerFn>{
     const modules = await getModules();
     if(modules === null) return (a,b,c) => {};
     const modulesBasename = modules.map((m) => path.basename(m));
-    console.log(modules, modulesBasename, handlerName);
     if(modulesBasename.indexOf(handlerName + ".js") === -1)
 	return (a,b,c) => {}; 
-    console.log("ok");
     return await moduleImporter(modules[modulesBasename.indexOf(handlerName + ".js")]);
 }

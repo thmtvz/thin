@@ -77,7 +77,7 @@ export async function loadConfig(): Promise<Config>{
 	console.error("Failed to read configuration file");
 	if(typeof e === "object" &&
 	    e !== null &&
-	    "message" in e) console.log(e.message);
+	    "message" in e) console.error(e.message);
 	process.exit(1);
     }
 }
@@ -117,7 +117,6 @@ const parseRoute = function(obj: StringKeyObj): any{
     return newObj;
 }
 
-//const parseRoute = makeLevelParseFunction("route", "", "name", verbLevelConfigProps, (obj) => {return {}});
 const parseVerb = makeLevelParseFunction("verb", "route", "verb", siteLevelConfigProps, parseRoute);
 const parseSite = makeLevelParseFunction("site", "verb", "name", topLevelConfigProps, parseVerb);
 
@@ -163,9 +162,6 @@ function validateRoute(route: any): RouteConfig | null {
 }
 
 function makeConfig(obj: {[k:string]: any}): Config{
-    //validar que o objeto json carregado definitivamente tem
-    //as propriedades minimas esperadas do tipo
-    console.dir(obj, {depth: null});
     let configObj: Config;
     let port = obj.port;
     if(obj.sites && obj.sites instanceof Array){

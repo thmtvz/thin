@@ -24,6 +24,8 @@ type RouteConfig = {
     handler: string,
 }
 
+type StringKeyObj = {[k:string]:any};
+
 //TODO make this map the config types
 //This will be usefull for extending basic config options
 const topLevelConfigProps: string[] = ["port"];
@@ -65,57 +67,12 @@ function translateWildcard(str: string): string | RegExp {
     return str;
 }
 
-export async function loadConfig(): Promise<Config>{ 
+export async function loadConfig(): Promise<Config>{
     try{
 	const serverDir = findServer();
 	if(!serverDir) return makeConfig({});
-	const fileContents = await fs.readFile(path.resolve(serverDir, "config.json"));
-	const contestingConfig: {[k: string]: any} = JSON.parse(fileContents.toString());
-
-	let configObj: {[k: string]: any} = {}
-	let sites: {[k: string]: any}[] = [];
-
-	for(let prop in contestingConfig){
-	    if(topLevelConfigProps.indexOf(prop) !== -1){
-		configObj[prop] = contestingConfig[prop];
-		continue;
-	    }
-	    const currentSiteName = prop;
-	    const contestingSiteObj = contestingConfig[prop];
-	    const siteConfig: {[k: string]: any} = {}
-	    const verbs = [];
-	    for(let prop in contestingSiteObj){
-		if(siteLevelConfigProps.indexOf(prop) !== -1){
-		    siteConfig[prop]  = contestingSiteObj[prop];
-		}
-		const currentVerb = prop;
-
-
-		const contestingVerbObj = contestingSiteObj[prop];
-		const verbConfig: {[k: string]: any} = {};
-		const routes = [];
-		for(let prop in contestingVerbObj){
-		    if(verbLevelConfigProps.indexOf(prop) !== -1){
-			verbConfig[prop]  = contestingVerbObj[prop];
-		    }
-		    const currentRoute = prop;
-		    const contestingRouteObj = contestingVerbObj[prop];
-		    const routeConfig: {[k: string]: any} = {}
-		    for(let prop in contestingRouteObj){
-			if(routeLevelConfigProps.indexOf(prop) !== -1){
-			    routeConfig[prop] = contestingRouteObj[prop];
-			}
-		    }
-		    routes.push({name: currentRoute, ...routeConfig});
-		}
-		verbs.push({verb: currentVerb, routes: routes, ...verbConfig});
-	    }
-	    sites.push({name: currentSiteName, verbs: verbs, ...siteConfig});
-	}
-	configObj.sites = sites;
-	
-	return makeConfig(configObj);
-	
+	const fileContents = (await fs.readFile(path.resolve(serverDir, "config.json"))).toString();
+	return parseConfig(JSON.parse(fileContents));
     } catch(e){
 	console.error("Failed to read configuration file");
 	if(typeof e === "object" &&
@@ -123,6 +80,50 @@ export async function loadConfig(): Promise<Config>{
 	    "message" in e) console.log(e.message);
 	process.exit(1);
     }
+}
+
+function makeLevelParseFunction(levelName: string,
+				nextLevelName: string,
+				levelIdentifier: string,
+				levelProps: string[],
+				nextLevel: (obj: StringKeyObj) => any):
+(obj: StringKeyObj) => StringKeyObj{
+    return function(obj){
+	const newObj: StringKeyObj = {[levelName + "s"]: []};
+	const levelArr = newObj[levelName + "s"];
+	for(let prop in obj){
+	    if(levelProps.indexOf(prop) !== -1){
+		newObj[prop] = obj[prop];
+		continue;
+	    }
+	    levelArr.push({[levelIdentifier]: prop,
+			   [`${nextLevelName}s`]: (nextLevel(obj[prop])[`${nextLevelName}s`])});
+	}
+	return newObj;
+    }
+}
+
+//TODO review this
+const parseRoute = function(obj: StringKeyObj): any{
+    const newObj: StringKeyObj = {["routes"]: []};
+    for(let prop in obj){
+	if(verbLevelConfigProps.indexOf(prop) !== -1){
+	    newObj[prop] = obj[prop];
+	    continue;
+	}
+	newObj["routes"].push({name: prop,
+			       handler: obj[prop]["handler"]});
+    }
+    return newObj;
+}
+
+//const parseRoute = makeLevelParseFunction("route", "", "name", verbLevelConfigProps, (obj) => {return {}});
+const parseVerb = makeLevelParseFunction("verb", "route", "verb", siteLevelConfigProps, parseRoute);
+const parseSite = makeLevelParseFunction("site", "verb", "name", topLevelConfigProps, parseVerb);
+
+async function parseConfig(loadedObj: {[k: string]: any}): Promise<Config>{
+    const configObj = makeConfig(parseSite(loadedObj));
+    return configObj;
 }
 
 function getValidElements<T>(arr: any[], validator: (e: any) => T | null): T[]{
@@ -164,6 +165,7 @@ function validateRoute(route: any): RouteConfig | null {
 function makeConfig(obj: {[k:string]: any}): Config{
     //validar que o objeto json carregado definitivamente tem
     //as propriedades minimas esperadas do tipo
+    console.dir(obj, {depth: null});
     let configObj: Config;
     let port = obj.port;
     if(obj.sites && obj.sites instanceof Array){

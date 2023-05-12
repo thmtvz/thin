@@ -1,5 +1,7 @@
 import {Site} from "./server.js";
 
+//generic registry?
+
 const siteRegistry: Map<string, Site> = new Map();
 
 export function registerSite(site: Site){

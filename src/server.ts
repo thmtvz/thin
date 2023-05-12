@@ -97,3 +97,5 @@ function initServer(port: number){
     server.on("request", serverHandler);
     server.listen(port);
 }
+
+function stopServer(){}

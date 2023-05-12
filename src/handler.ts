@@ -14,7 +14,7 @@ async function getModules(): Promise<string[] | null> {
     }
     const mods: string[] = [];
     for(let moduleName of modules)
-	if(moduleName.name.slice(-3) === ".js")
+	if(path.extname(moduleName.name) === ".js")
 	    mods.push(moduleName.name);
     return mods.map((m) => path.resolve(serverDir, "modules", m));
 }

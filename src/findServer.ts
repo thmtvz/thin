@@ -7,12 +7,7 @@ const knownPaths = [
     "/etc/thin/",
 ];
 
-let serverLocation: string | null = "";
-
-export default function findServer(): string | null {
-    if(serverLocation !== "") return serverLocation;
-    return serverLocation = runFindServer();
-}
+var serverLocation: string | null = "";
 
 function runFindServer(): string | null {
     for(let p of knownPaths){
@@ -24,4 +19,9 @@ function runFindServer(): string | null {
 	}
     }
     return null;
+}
+
+export default function findServer(): string | null {
+    if(serverLocation !== "") return serverLocation;
+    return serverLocation = runFindServer();
 }

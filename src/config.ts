@@ -67,21 +67,6 @@ function translateWildcard(str: string): string | RegExp {
     return str;
 }
 
-export async function loadConfig(): Promise<Config>{
-    try{
-	const serverDir = findServer();
-	if(!serverDir) return makeConfig({});
-	const fileContents = (await fs.readFile(path.resolve(serverDir, "config.json"))).toString();
-	return parseConfig(JSON.parse(fileContents));
-    } catch(e){
-	console.error("Failed to read configuration file");
-	if(typeof e === "object" &&
-	    e !== null &&
-	    "message" in e) console.error(e.message);
-	process.exit(1);
-    }
-}
-
 function makeLevelParseFunction(levelName: string,
 				nextLevelName: string,
 				levelIdentifier: string,
@@ -169,4 +154,19 @@ function makeConfig(obj: {[k:string]: any}): Config{
 	return {port: port || 8080, sites: validSites};
     }
     return {port: 8080, sites: []};
+}
+
+export async function loadConfig(): Promise<Config>{
+    try{
+	const serverDir = findServer();
+	if(!serverDir) return makeConfig({});
+	const fileContents = (await fs.readFile(path.resolve(serverDir, "config.json"))).toString();
+	return parseConfig(JSON.parse(fileContents));
+    } catch(e){
+	console.error("Failed to read configuration file");
+	if(typeof e === "object" &&
+	    e !== null &&
+	    "message" in e) console.error(e.message);
+	process.exit(1);
+    }
 }

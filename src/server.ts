@@ -26,6 +26,8 @@ export type Site = {
     verbs: Verb[];
 }
 
+var server: null | Server = null;
+
 function findOnList<T extends Object>(name: string,
 				      list: T[],
 				      property: keyof T,
@@ -81,7 +83,13 @@ async function serverHandler(request: IncomingMessage,
     });
 }
 
-var server: null | Server = null;
+function initServer(port: number){
+    server = createServer();
+    server.on("request", serverHandler);
+    server.listen(port);
+}
+
+function stopServer(){}
 
 export default async function startServer(){
     let config = await loadConfig();
@@ -91,11 +99,3 @@ export default async function startServer(){
     
     initServer(config.port);
 }
-
-function initServer(port: number){
-    server = createServer();
-    server.on("request", serverHandler);
-    server.listen(port);
-}
-
-function stopServer(){}
